@@ -1,5 +1,6 @@
 import NavbarTop from "./components/NavbarTop";
 import FinanceCard from "./components/FinanceCard.jsx";
+import InvestmentCard from "./components/InvestmentCard.jsx";
 
 export default function App() {
   return (
@@ -13,17 +14,9 @@ export default function App() {
       </div>
 
       {/* Content Positioned Below the Navbar */}
-      <div className="relative z-10 flex justify-center items-start mt-10">
+      <div className="relative z-10 flex flex-row justify-center items-start mt-10 gap-10">
         <FinanceCard />
-      </div>
-      <div className="relative z-10 flex justify-center items-start mt-10">
-        <FinanceCard />
-      </div>
-      <div className="relative z-10 flex justify-center items-start mt-10">
-        <FinanceCard />
-      </div>
-      <div className="relative z-10 flex justify-center items-start mt-10">
-        <FinanceCard />
+        <InvestmentCard investmentAmount="592" changePercentage="12"/>
       </div>
     </div>
   );

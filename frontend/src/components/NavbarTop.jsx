@@ -12,12 +12,13 @@ import {
   Button,
 } from "@heroui/react";
 
+
 export default function NavbarTop() {
   // Get the current path
   const currentPath = window.location.pathname;
 
   return (
-    <Navbar shouldHideOnScroll className="border-b border-green-200 dark:border-green-400">
+    <Navbar shouldHideOnScroll className="border-b-4 border-green-200 dark:border-green-400">
       <NavbarBrand>
         <p
           style={{
