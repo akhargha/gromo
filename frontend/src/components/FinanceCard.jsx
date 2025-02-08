@@ -5,7 +5,7 @@ export default function FinanceCard() {
   return (
     <Card
       isBlurred
-      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-800 dark:to-green-600 max-w-[800px] max-h-[400px] p-6 shadow-lg"
+      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-800 dark:to-green-600 max-w-[800px] min-h-[329px] max-h-[329px] p-6 shadow-lg"
     >
       <CardBody>
         {/* Main Title */}

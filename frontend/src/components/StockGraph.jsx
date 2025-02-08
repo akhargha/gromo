@@ -1,26 +1,43 @@
 import React from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend } from "chart.js";
 
-const data = [
-  { date: "Jan", price: 120 },
-  { date: "Feb", price: 135 },
-  { date: "Mar", price: 110 },
-  { date: "Apr", price: 140 },
-  { date: "May", price: 125 },
-  { date: "Jun", price: 150 },
-];
+// Register required components
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
+
+const data = {
+  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+  datasets: [
+    {
+      label: "Investment Value ($)",
+      data: [120, 135, 110, 140, 125, 150], // Sample data
+      borderColor: "#4CAF50", // Green line
+      backgroundColor: "rgba(76, 175, 80, 0.2)", // Slight green fill
+      tension: 0.4, // Smooth curves
+      borderWidth: 2,
+      pointRadius: 3,
+      pointBackgroundColor: "#4CAF50",
+      fill: true,
+    },
+  ],
+};
+
+const options = {
+  responsive: true,
+  plugins: {
+    legend: { display: false }, // Hide legend for a cleaner look
+    tooltip: { enabled: true },
+  },
+  scales: {
+    x: { grid: { display: false }, ticks: { color: "#333" } }, // Dark gray X-axis labels
+    y: { grid: { display: true }, ticks: { color: "#333" } }, // Dark gray Y-axis labels
+  },
+};
 
 export default function StockGraph() {
   return (
-    <div className="w-full h-40 bg-gray-700 rounded-lg p-4 flex items-center justify-center">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <XAxis dataKey="date" stroke="white" />
-          <YAxis stroke="white" />
-          <Tooltip />
-          <Line type="monotone" dataKey="price" stroke="#4CAF50" strokeWidth={2} dot={{ r: 3 }} />
-        </LineChart>
-      </ResponsiveContainer>
+    <div className="w-full h-40 bg-white rounded-lg p-4 shadow-md">
+      <Line data={data} options={options} />
     </div>
   );
 }
