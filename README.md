@@ -20,6 +20,27 @@ Investment Options:
 - Current stock value
 - Number of shares held
 
+- Manual Investment
+
+Allows users to invest specific amounts from their available cashback rewards
+Supports portfolio selection based on risk preference
+Automatically allocates investments across stocks based on portfolio weights
+Provides immediate confirmation with detailed allocation information
+
+- Auto-Investment
+
+Automatically invests all available cashback into the best-performing portfolio
+Uses historical return data to select optimal portfolio
+Handles complete allocation across portfolio stocks
+Provides detailed investment confirmation
+
+- Investment Tracking
+
+Real-time monitoring of investment performance
+Detailed view of stock allocations
+Current value calculations
+Performance metrics including returns
+
 
 
 ## Tech Stack
@@ -197,23 +218,174 @@ Purpose: Records the detailed allocation of an investment across various stocks.
 
 
 ## API Endpoints
-- GET /portfolios
-Returns available investment portfolios with metadata and stock allocations.
-- POST /invest
-Processes manual investment requests.
+
+
+### Investment Section
+Investment Endpoints
+1. Manual Investment
+Create a new investment using available cashback rewards.
+POST /api/invest
+Request Body:
 jsonCopy{
-  "amount": "50.00",
-  "portfolio": "S&P 500"
+    "amount": "50.00",
+    "portfolio": "Tech Growth"
 }
-- POST /auto_invest
-Triggers automatic investment of accumulated cashback.
-- GET /investment_summary
-Returns comprehensive investment details and allocations.
-- GET /investment_performance
-Provides real-time performance metrics for investments.
+Success Response (200 OK):
+jsonCopy{
+    "message": "Investment completed",
+    "portfolio": "Tech Growth",
+    "amount_invested": "50.00",
+    "allocations": [
+        {
+            "stock_symbol": "AAPL",
+            "units": "0.2500",
+            "amount_allocated": "25.00"
+        },
+        {
+            "stock_symbol": "GOOGL",
+            "units": "0.1500",
+            "amount_allocated": "15.00"
+        }
+    ]
+}
+Error Responses:
+
+400 Bad Request: Invalid input data
+404 Not Found: Portfolio not found
+500 Internal Server Error: Processing failed
+
+2. Automatic Investment
+Automatically invest all available cashback into the best-performing portfolio.
+CopyPOST /api/auto_invest
+Success Response (200 OK):
+jsonCopy{
+    "message": "Auto-investment completed",
+    "portfolio": "Tech Growth",
+    "amount_invested": "150.00",
+    "allocations": [
+        {
+            "stock_symbol": "AAPL",
+            "units": "0.7500",
+            "amount_allocated": "75.00"
+        },
+        {
+            "stock_symbol": "GOOGL",
+            "units": "0.4500",
+            "amount_allocated": "45.00"
+        }
+    ]
+}
+Error Responses:
+
+400 Bad Request: No cashback available
+404 Not Found: No portfolio or credit card found
+500 Internal Server Error: Processing failed
+
+3. Investment Summary
+Get a summary of all investments and their current values.
+GET /api/investment_summary
+Success Response (200 OK):
+jsonCopy[
+    {
+        "investment_id": 1,
+        "investment_date": "2025-02-08T18:16:01Z",
+        "portfolio": "Tech Growth",
+        "investment_amount": "50.00",
+        "current_value": "52.50",
+        "allocations": [
+            {
+                "stock_symbol": "AAPL",
+                "units": "0.2500",
+                "purchase_price": "100.00",
+                "current_price": "105.00",
+                "current_value": "26.25"
+            },
+            {
+                "stock_symbol": "GOOGL",
+                "units": "0.1500",
+                "purchase_price": "150.00",
+                "current_price": "155.00",
+                "current_value": "23.25"
+            }
+        ]
+    }
+]
+Error Response:
+
+500 Internal Server Error: Failed to fetch data
+
+4. Available Portfolios
+Get list of available investment portfolios.
+CopyGET /api/portfolios
+Success Response (200 OK):
+jsonCopy[
+    {
+        "id": 4,
+        "name": "Tech Growth",
+        "description": "High-growth technology stocks",
+        "historical_return": "15.50",
+        "risk_level": "High",
+        "stocks": [
+            {
+                "symbol": "AAPL",
+                "name": "Apple Inc.",
+                "weight": "40.00"
+            },
+            {
+                "symbol": "GOOGL",
+                "name": "Alphabet Inc.",
+                "weight": "35.00"
+            }
+        ]
+    }
+]
+Error Response:
+
+500 Internal Server Error: Failed to fetch portfolios
+
+5. Performance Metrics
+Get real-time performance metrics for investments.
+GET /api/investment_performance
+Success Response (200 OK):
+jsonCopy[
+    {
+        "investment_detail_id": 1,
+        "stock_symbol": "AAPL",
+        "units": "0.2500",
+        "purchase_price": "100.00",
+        "current_price": "105.00",
+        "current_value": "26.25",
+        "total_return": "1.25",
+        "todays_return": "0.50"
+    }
+]
+Error Response:
+
+500 Internal Server Error: Failed to fetch performance data
+
+Example cURL Commands
+Manual Investment:
+bashCopycurl -X POST http://localhost:5000/api/invest \
+  -H "Content-Type: application/json" \
+  -H "apikey: your-supabase-key" \
+  -d '{
+    "amount": "50.00",
+    "portfolio": "Tech Growth"
+  }'
+Auto-Investment:
+bashCopycurl -X POST http://localhost:5000/api/auto_invest \
+  -H "apikey: your-supabase-key"
+Get Investment Summary:
+bashCopycurl http://localhost:5000/api/investment_summary \
+  -H "apikey: your-supabase-key"
+Get Available Portfolios:
+bashCopycurl http://localhost:5000/api/portfolios \
+  -H "apikey: your-supabase-key"
+Get Performance Metrics:
+bashCopycurl http://localhost:5000/api/investment_performance \
+  -H "apikey: your-supabase-key"
 
 
-### Update .env with your database credentials and API keys
 
 
 ## Future Enhancements
