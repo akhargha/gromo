@@ -8,9 +8,19 @@ export default function FinanceCard() {
       className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-800 dark:to-green-600 max-w-[800px] min-h-[329px] max-h-[329px] p-6 shadow-lg"
     >
       <CardBody>
-        {/* Main Title */}
+        {/* Main Title with Black Border Outline */}
         <div className="flex flex-col items-start">
-          <h2 className="text-2xl font-bold text-white">Account Overview</h2>
+        <h2
+            style={{
+              fontFamily: "sans-serif",
+              color: "white",
+              textShadow:
+                "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+              fontSize: "30px",
+            }}
+          >
+            Account Overview
+          </h2>
           <p className="text-lg text-white/80">Your financial summary</p>
         </div>
 

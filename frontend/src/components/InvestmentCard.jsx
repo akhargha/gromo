@@ -1,9 +1,13 @@
 import React from "react";
 import { Card, CardBody } from "@heroui/react";
 import StockGraph from "./StockGraph"; // Import the Chart.js graph
+import UpArrow from "../assets/up-arrow.svg"; // Import Up Arrow
+import DownArrow from "../assets/arrow-down.svg"; // Import Down Arrow
 
 export default function InvestmentCard({ investmentAmount, changePercentage, onClick }) {
-  const textColor = changePercentage >= 0 ? "text-green-500" : "text-red-500";
+  const isPositive = changePercentage >= 0;
+  const textColor = isPositive ? "text-green-500" : "text-red-500";
+  const arrowIcon = isPositive ? UpArrow : DownArrow; // Choose correct arrow
 
   return (
     <Card
@@ -14,12 +18,25 @@ export default function InvestmentCard({ investmentAmount, changePercentage, onC
       <CardBody>
         {/* Title - Matches Account Overview */}
         <div className="flex flex-col items-start">
-          <h2 className="text-2xl font-bold text-white">Your Investments</h2>
+        <h2
+            style={{
+              fontFamily: "sans-serif",
+              color: "white",
+              textShadow:
+                "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+              fontSize: "30px",
+            }}
+          >
+            Your Investments
+          </h2>
 
-          {/* Investment Amount & Percentage on the Same Line */}
-          <div className="flex items-center gap-0.5">
+          {/* Investment Amount & Percentage with Arrow */}
+          <div className="flex items-center gap-1 mt-1">
             <p className="text-lg text-white/80">${investmentAmount}</p>
-            <p className={`text-lg ${textColor}`}>({changePercentage}%)</p>
+            <p className={`text-lg ${textColor} flex items-center`}>
+              ({changePercentage}%)
+              <img src={arrowIcon} alt="change direction" className="w-4 h-4 ml-1" />
+            </p>
           </div>
         </div>
 

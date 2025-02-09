@@ -16,7 +16,7 @@ export default function App() {
       {/* Content Positioned Below the Navbar */}
       <div className="relative z-10 flex flex-row justify-center items-start mt-10 gap-10">
         <FinanceCard />
-        <InvestmentCard investmentAmount="592" changePercentage="12"/>
+        <InvestmentCard investmentAmount="592" changePercentage="-10"/>
       </div>
     </div>
   );
