@@ -1,92 +1,84 @@
-# CreditCard.py
-from current_balance import CurrentBalance
-from cashback import Cashback
-from transactions import Transactions
-import datetime
+from flask import Flask, jsonify, request
 from supabase import create_client, Client
+import datetime
 
-class CreditCard:
-    def __init__(self, credit_card_id: int, credit_limit: float, cc_number: str):
-        """
-        Initialize the CreditCard instance and connect to Supabase.
-        :param credit_card_id: The ID of the credit card record in the credit_cards table.
-        :param credit_limit: The total credit limit for the card.
-        :param cc_number: The credit card number.
-        """
-        self.credit_card_id = credit_card_id
-        self.cc_number = cc_number
-        self.credit_limit = credit_limit
-        self.current_balance = CurrentBalance()
-        self.cashback = Cashback()
-        self.transactions = Transactions()
+app = Flask(__name__)
+PORT = 5001
 
-        # Initialize Supabase client for updating the credit_cards table
-        self.supabase_url = "https://dicdnvswymiaugijpjfa.supabase.co"
-        self.supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpY2RudnN3eW1pYXVnaWpwamZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkwMzYzNDAsImV4cCI6MjA1NDYxMjM0MH0.piFtbs8TCzvYAl-5htYNcl-fdAYkoqJEeIaUDz_iCI4"
-        self.client: Client = create_client(self.supabase_url, self.supabase_key)
+# Supabase Credentials
+SUPABASE_URL = "https://dicdnvswymiaugijpjfa.supabase.co"
+SUPABASE_KEY = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpY2RudnN3eW1pYXVnaWpwamZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkwMzYzNDAsImV4cCI6MjA1NDYxMjM0MH0."
+    "piFtbs8TCzvYAl-5htYNcl-fdAYkoqJEeIaUDz_iCI4"
+)
 
-    def update_credit_card_record(self):
-        """
-        Update the credit card record in the credit_cards table to reflect the latest
-        current_balance, available_credit, and rewards_cash.
-        """
-        record = {
-            "current_balance": self.current_balance.balance,
-            "available_credit": self.get_available_credit(),
-            "rewards_cash": self.cashback.rewards_cash,
-            "updated_at": datetime.datetime.now().isoformat()
-        }
-        response = self.client.table("credit_cards").update(record).eq("id", self.credit_card_id).execute()
-        return response.data
+# Initialize Supabase client
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    def get_available_credit(self) -> float:
-        """
-        Compute and return the available credit.
-        :return: Credit limit minus current balance.
-        """
-        return self.credit_limit - self.current_balance.balance
+def get_all_transactions():
+    """Fetch all transactions from the transactions table."""
+    response = supabase.table("transactions").select("*").execute()
+    return response.data if response.data else []
 
-    def sync_account(self) -> None:
-        """
-        Sync the credit card account by:
-         - Fetching all transactions (via the Transactions class),
-         - Filtering them by this card's credit_card_id,
-         - Aggregating the current balance (as the sum of all transaction_amount values),
-         - Computing the cashback (3% of all positive transactions),
-         - And updating the credit_cards record in Supabase.
-        """
-        # Fetch all transactions from the transactions table
-        all_transactions = self.transactions.get_all_transactions()
-        # Filter transactions to those matching this credit card
-        transactions = [
-            tx for tx in all_transactions
-            if int(tx.get("credit_card_id", 0)) == self.credit_card_id
-        ]
+def get_all_credit_cards():
+    """Fetch all credit card details from the credit_cards table."""
+    response = supabase.table("credit_cards").select("id", "credit_line").execute()
+    return response.data if response.data else []
+
+def update_credit_card(credit_card_id: int, updates: dict):
+    """Update a credit card record in the credit_cards table."""
+    response = supabase.table("credit_cards").update(updates).eq("id", credit_card_id).execute()
+    return response.data[0] if response.data and len(response.data) > 0 else {}
+
+def calculate_total_spent(credit_card_id: int):
+    """Calculate the total amount spent for a given credit card."""
+    response = supabase.table("transactions").select("transaction_amount").eq("credit_card_id", credit_card_id).execute()
+    total_spent = sum(float(tx["transaction_amount"]) for tx in response.data) if response.data else 0
+    return total_spent
+
+@app.route("/update_credit_cards", methods=["GET"])
+def update_credit_cards():
+    """
+    Update credit card records by:
+     - Fetching all transactions.
+     - Calculating new current balance, available credit, and rewards cash dynamically from the credit card table.
+    """
+    credit_cards = get_all_credit_cards()
+    updated_records = []
+
+    for card in credit_cards:
+        credit_card_id = card["id"]
+        credit_line = float(card["credit_line"])  # Get the credit line from the credit_cards table
+        total_spent = calculate_total_spent(credit_card_id)
+        cashback = total_spent * 0.03  # 3% cashback calculation
         
-        # Aggregate the current balance: sum all transaction_amount values.
-        computed_balance = sum(float(tx.get("transaction_amount", 0)) for tx in transactions)
-        
-        # Aggregate cashback: assume cashback is 3% of all positive (charge) transactions.
-        computed_cashback = sum(
-            float(tx.get("transaction_amount", 0)) * 0.03
-            for tx in transactions if float(tx.get("transaction_amount", 0)) > 0
-        )
-        
-        # Update internal state
-        self.current_balance.balance = computed_balance
-        self.cashback.rewards_cash = computed_cashback
-        
-        # Update the credit_cards record in Supabase
-        self.update_credit_card_record()
-        print(f"Synced account: Current Balance = ${computed_balance}, Rewards Cash = ${computed_cashback}")
+        current_balance = total_spent
+        available_credit = credit_line - total_spent
+        rewards_cash = cashback
+        updated_at = datetime.datetime.now().isoformat()
 
-# Demo usage
-if __name__ == '__main__':
-    # For demonstration purposes, assume:
-    # credit_card_id=1, a $5,000 credit limit, and a given card number.
-    card = CreditCard(credit_card_id=1, credit_limit=5000.0, cc_number="1234-5678-9012-3456")
+        update_credit_card(credit_card_id, {
+            "current_balance": current_balance,
+            "available_credit": available_credit,
+            "rewards_cash": rewards_cash,
+            "updated_at": updated_at
+        })
+        updated_records.append({"credit_card_id": credit_card_id, "current_balance": current_balance, "available_credit": available_credit, "rewards_cash": rewards_cash})
     
-    # Instead of processing new transactions here,
-    # sync the account by fetching existing transactions from Supabase
-    # and updating the credit card details accordingly.
-    card.sync_account()
+    return jsonify({"message": "Credit card balances and rewards updated successfully", "records": updated_records})
+
+@app.route("/get_credit_card_details/<int:credit_card_id>", methods=["GET"])
+def get_credit_card_details_endpoint(credit_card_id):
+    """Fetch and return details of a specific credit card."""
+    response = supabase.table("credit_cards").select("*").eq("id", credit_card_id).execute()
+    return jsonify(response.data[0] if response.data else {})
+
+@app.route("/get_credit_cards", methods=["GET"])
+def get_credit_cards():
+    """Fetch and return all credit card details."""
+    response = supabase.table("credit_cards").select("*").execute()
+    return jsonify({"credit_cards": response.data if response.data else []})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=PORT, debug=True)

@@ -1,0 +1,61 @@
+# Ignore macOS system files
+.DS_Store
+
+# Ignore JetBrains IDE project files
+.idea/
+
+# Ignore Python cache and virtual environment files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environment directories
+venv/
+.env/
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore logs and temporary files
+*.log
+tmp/
+
+# Ignore compiled C extensions
+*.so
+
+# Ignore database files
+*.sqlite3
+*.db
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore node_modules if working with JavaScript/TypeScript
+node_modules/
+
+# Ignore package managers lock files
+yarn.lock
+package-lock.json
+
+# Ignore build artifacts
+dist/
+build/
+
+# Ignore coverage reports
+.coverage
+htmlcov/
+
+# Ignore Docker files
+*.pid
+
+# Ignore Terraform files
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Ignore JetBrains workspace files
+*.iml
+
+# Ignore compiled Java files
+*.class
