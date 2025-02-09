@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Card, CardBody, Button } from "@heroui/react";
 
 const CARD_URL = "http://localhost:5001/credit_card"; // Backend API URL
+const INVEST_REWARDS_URL = "http://localhost:5002/investments/invest-rewards"; // Investment API
 
 export default function RewardCard() {
   const [rewardAmount, setRewardAmount] = useState("Loading...");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch(CARD_URL)
@@ -29,6 +31,25 @@ export default function RewardCard() {
       });
   }, []);
 
+  const handleInvestNow = () => {
+    setLoading(true);
+    fetch(INVEST_REWARDS_URL, { method: "GET" })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(() => {
+        window.location.reload(); // Reload the page to update reward balance
+      })
+      .catch((error) => {
+        console.error("Error investing rewards:", error);
+        setError("Failed to invest rewards. Please try again later.");
+      })
+      .finally(() => setLoading(false));
+  };
+
   return (
     <Card className="p-4 bg-green-300 border border-black shadow-sm max-w-[300px]">
       <CardBody className="flex flex-col items-center">
@@ -46,8 +67,15 @@ export default function RewardCard() {
 
         {/* Action Buttons with Increased Spacing */}
         <div className="flex flex-col gap-6 mt-6">
-          <Button color="success" size="lg" variant="solid" className="min-w-[150px] max-w-[150px]">
-            Invest Now
+          <Button
+            color="success"
+            size="lg"
+            variant="solid"
+            className="min-w-[150px] max-w-[150px]"
+            onClick={handleInvestNow}
+            disabled={loading}
+          >
+            {loading ? "Investing..." : "Invest Now"}
           </Button>
           <Button color="success" size="lg" variant="solid" className="min-w-[150px] max-w-[150px]">
             Redeem for Cash

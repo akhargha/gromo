@@ -2,6 +2,10 @@ import os
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -9,10 +13,13 @@ CORS(app)
 # -----------------------------------------------------------------------------
 # 1. Supabase Configuration
 # -----------------------------------------------------------------------------
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Initialize Supabase client
+supabase: Client = create_client(
+    os.getenv("REACT_APP_SUPABASE_URL"),
+    os.getenv("REACT_APP_SUPABASE_ANON_KEY")
+)
 
 # -----------------------------------------------------------------------------
 # 2. Health Check
