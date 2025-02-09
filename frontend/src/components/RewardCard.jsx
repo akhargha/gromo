@@ -20,7 +20,7 @@ export default function RewardCard({ rewardAmount }) {
             Redeem for Cash
           </Button>
           <Button color="success" size="lg" variant="solid" className="min-w-[150px] max-w-[150px]">
-            Book a Trip
+            Claim earnings
           </Button>
         </div>
       </CardBody>
