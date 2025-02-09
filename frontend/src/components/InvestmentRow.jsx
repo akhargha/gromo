@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableHeader,
@@ -6,72 +6,57 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  getKeyValue,
   Card,
   CardBody,
 } from "@heroui/react";
 
-// Sample transaction data with added columns
-const transactions = [
-  {
-    key: "1",
-    index: "Vanguard Mid-capex",
-    date: "2024-02-01",
-    amount: "$150.75",
-    units: "3.5",
-    pricePerUnit: "$43.07",
-  },
-  {
-    key: "2",
-    index: "Vanguard Mid-capex",
-    date: "2024-02-02",
-    amount: "$85.20",
-    units: "2.0",
-    pricePerUnit: "$42.60",
-  },
-  {
-    key: "3",
-    index: "Vanguard Mid-capex",
-    date: "2024-02-03",
-    amount: "$220.00",
-    units: "5.1",
-    pricePerUnit: "$43.14",
-  },
-  {
-    key: "4",
-    index: "Vanguard Mid-capex",
-    date: "2024-02-04",
-    amount: "$45.60",
-    units: "1.2",
-    pricePerUnit: "$38.00",
-  },
-];
-
-// Updated Table column structure (Added Units Purchased & Price per Unit)
-const columns = [
-  {
-    key: "date",
-    label: "TRANSACTION DATE",
-  },
-  {
-    key: "index",
-    label: "INDEX",
-  },
-  {
-    key: "units",
-    label: "UNITS PURCHASED",
-  },
-  {
-    key: "pricePerUnit",
-    label: "PRICE PER UNIT ($)",
-  },
-  {
-    key: "amount",
-    label: "AMOUNT ($)",
-  },
-];
+// Define backend API URL
+const INVESTMENTS_URL = "http://127.0.0.1:5002/investments";
 
 export default function InvestmentRow() {
+  const [investments, setInvestments] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(INVESTMENTS_URL)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error("No investments found");
+        }
+
+        const formattedInvestments = data.map((investment) => ({
+          key: investment.id,
+          date: new Date(investment.date).toLocaleDateString(),
+          index: investment.index_purchased || "Unknown",
+          units: investment.units_purchased.toFixed(4),
+          pricePerUnit: `$${investment.price_per_unit.toFixed(2)}`,
+          amount: `$${investment.amount_invested.toFixed(2)}`,
+        }));
+
+        setInvestments(formattedInvestments);
+      })
+      .catch((error) => {
+        console.error("Error fetching investments:", error);
+        setError("Failed to load investment data. Please try again later.");
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const columns = [
+    { key: "date", label: "TRANSACTION DATE" },
+    { key: "index", label: "INDEX" },
+    { key: "units", label: "UNITS PURCHASED" },
+    { key: "pricePerUnit", label: "PRICE PER UNIT ($)" },
+    { key: "amount", label: "AMOUNT INVESTED ($)" },
+  ];
+
   return (
     <Card
       isBlurred
@@ -79,36 +64,35 @@ export default function InvestmentRow() {
     >
       <CardBody>
         <div className="flex flex-col items-start">
-          <h2
-            style={{
-              fontSize: "30px",
-              fontWeight: "bold",
-            }}
-          >
-            Investments
-          </h2>
+          <h2 style={{ fontSize: "30px", fontWeight: "bold" }}>Investments</h2>
           <p className="text-lg text-white/80">Your investment history</p>
         </div>
 
-        <Table aria-label="Investment History">
-          {/* Table Header */}
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn key={column.key} className="text-white text-sm">
-                {column.label}
-              </TableColumn>
-            )}
-          </TableHeader>
+        {loading ? (
+          <p className="text-white mt-4">Loading investments...</p>
+        ) : error ? (
+          <div className="text-red-500 text-center mt-4">{error}</div>
+        ) : investments.length === 0 ? (
+          <p className="text-white mt-4">No investments found.</p>
+        ) : (
+          <Table aria-label="Investment History">
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key} className="text-white text-sm">
+                  {column.label}
+                </TableColumn>
+              )}
+            </TableHeader>
 
-          {/* Table Body */}
-          <TableBody items={transactions}>
-            {(item) => (
-              <TableRow key={item.key}>
-                {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            <TableBody items={investments}>
+              {(item) => (
+                <TableRow key={item.key}>
+                  {(columnKey) => <TableCell>{item[columnKey]}</TableCell>}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </CardBody>
     </Card>
   );
