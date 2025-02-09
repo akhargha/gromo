@@ -9,16 +9,11 @@ export default function FullInvestmentCard({ investmentAmount, changePercentage 
   const textColor = isPositive ? "text-green-500" : "text-red-700";
   const arrowIcon = isPositive ? UpArrow : DownArrow;
 
-  // Navigate to /investment.html on click
-  const handleCardClick = () => {
-    window.location.href = "/investment.html"; // Redirect to investment page
-  };
-
   return (
-    <div onClick={handleCardClick} className="cursor-pointer w-fit">
+    <div className="w-fit">
       <Card
         isBlurred
-        className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-700 dark:to-green-500 max-w-[800px] min-w-[800px] min-h-[400px] max-h-[400px] p-6 shadow-lg transition-transform transform hover:scale-105"
+        className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-700 dark:to-green-500 max-w-[800px] min-w-[800px] min-h-[400px] max-h-[400px] p-6 shadow-lg transition-transform transform"
       >
         <CardBody>
           {/* Title - Matches Account Overview */}
@@ -39,7 +34,7 @@ export default function FullInvestmentCard({ investmentAmount, changePercentage 
 
           {/* Stock Graph using Chart.js */}
           <div className="mt-6">
-          <StockGraph height="h-56" />
+            <StockGraph height="h-56" />
           </div>
         </CardBody>
       </Card>

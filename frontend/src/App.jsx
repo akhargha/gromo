@@ -1,9 +1,19 @@
+import React, { useEffect } from "react";
 import NavbarTop from "./components/NavbarTop";
 import FinanceCard from "./components/FinanceCard.jsx";
 import InvestmentCard from "./components/InvestmentCard.jsx";
 import TransactionRow from "./components/TransactionRow.jsx";
 
+const CARD_BASE_URL = "http://localhost:5005"; // Store the backend API base URL
+
 export default function App() {
+  useEffect(() => {
+    fetch(`${CARD_BASE_URL}/update_credit_cards`)
+      .then((response) => response.json())
+      .then((data) => console.log("Credit Cards Updated:", data))
+      .catch((error) => console.error("Error updating credit cards:", error));
+  }, []);
+
   return (
     <div className="relative min-h-screen">
       {/* Background Gradient for the Whole Page */}
