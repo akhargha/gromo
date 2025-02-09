@@ -12,12 +12,12 @@ export default function StockGraph({ height = "h-40" }) { // Default height is h
       {
         label: "Investment Value ($)",
         data: [120, 135, 110, 140, 125, 150], // Sample data
-        borderColor: "#4CAF50", // Green line
+        borderColor: "green", // Green line
         backgroundColor: "rgba(76, 175, 80, 0.2)", // Slight green fill
-        tension: 0.4, // Smooth curves
+        tension: 0.1, // Smooth curves
         borderWidth: 2,
         pointRadius: 3,
-        pointBackgroundColor: "#4CAF50",
+        pointBackgroundColor: "darkgreen",
         fill: true,
       },
     ],
@@ -31,13 +31,13 @@ export default function StockGraph({ height = "h-40" }) { // Default height is h
       tooltip: { enabled: true },
     },
     scales: {
-      x: { grid: { display: false }, ticks: { color: "#333" } }, // Dark gray X-axis labels
-      y: { grid: { display: true }, ticks: { color: "#333" } }, // Dark gray Y-axis labels
+      x: { grid: { display: false }, ticks: { color: "white" } }, // Dark gray X-axis labels
+      y: { grid: { display: true }, ticks: { color: "white" } }, // Dark gray Y-axis labels
     },
   };
 
   return (
-    <div className={`w-full ${height} bg-white rounded-lg p-4 shadow-md`}>
+    <div className={`w-full ${height} bg-black rounded-lg p-4 shadow-md`}>
       <Line data={data} options={options} />
     </div>
   );
