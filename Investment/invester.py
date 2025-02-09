@@ -63,7 +63,9 @@ def get_portfolios():
 
 @app.route('/api/invest', methods=['POST'])
 def invest_cashback():
-    """Invest cashback into selected portfolio"""
+    """
+    Invest ALL uninvested cashback transactions for a given credit_card_id and portfolio_id.
+    """
     try:
         # Parse JSON data from request
         if not request.is_json:
@@ -76,138 +78,199 @@ def invest_cashback():
             logger.error(f"Failed to parse JSON: {str(e)}")
             return jsonify({'error': 'Invalid JSON format'}), 400
 
-        logger.info(f"Received investment request: {data}")
+        logger.info(f"Received investment request (bulk): {data}")
 
-        # Validate required fields
-        required_fields = ['credit_card_id', 'portfolio_id', 'cashback_transaction_id']
+        # Validate required fields (remove cashback_transaction_id requirement)
+        required_fields = ['credit_card_id', 'portfolio_id']
         if not all(field in data for field in required_fields):
-            return jsonify({'error': 'Missing required fields'}), 400
+            return jsonify({'error': 'Missing required fields: credit_card_id, portfolio_id'}), 400
 
         # Convert IDs to integers
         try:
             credit_card_id = int(data['credit_card_id'])
             portfolio_id = int(data['portfolio_id'])
-            cashback_transaction_id = int(data['cashback_transaction_id'])
         except ValueError:
             return jsonify({'error': 'Invalid ID format - must be integers'}), 400
 
-        # Check if cashback already invested
-        existing = supabase.table('investment_transactions') \
+        # ------------------------------------------------------------------------------
+        # 1. Get all transactions for this credit_card_id
+        # ------------------------------------------------------------------------------
+        transactions_response = supabase.table('transactions') \
             .select('id') \
-            .eq('cashback_transaction_id', cashback_transaction_id) \
+            .eq('credit_card_id', credit_card_id) \
             .execute()
-            
-        if existing.data:
-            return jsonify({'error': 'Cashback already invested'}), 400
 
-        # Get cashback amount
-        cashback = supabase.table('cashback_transactions') \
-            .select('cashback_amount') \
-            .eq('id', cashback_transaction_id) \
+        if not transactions_response.data:
+            return jsonify({'message': 'No transactions found for this credit card ID'}), 200
+
+        transaction_ids = [t['id'] for t in transactions_response.data]
+
+        # ------------------------------------------------------------------------------
+        # 2. Get all cashback_transactions for those transaction_ids
+        #    that are NOT yet invested (no row in investment_transactions).
+        # ------------------------------------------------------------------------------
+        # Get all cashback transactions linked to the transaction_ids
+        cb_response = supabase.table('cashback_transactions') \
+            .select('id, cashback_amount, transaction_id') \
+            .in_('transaction_id', transaction_ids) \
             .execute()
-            
-        if not cashback.data:
-            return jsonify({'error': 'Invalid cashback transaction'}), 404
 
-        cashback_amount = float(cashback.data[0]['cashback_amount'])
+        if not cb_response.data:
+            return jsonify({'message': 'No cashback transactions found to invest'}), 200
 
+        # Collect all cashback_transaction_ids from the set above
+        all_cb_ids = [cb['id'] for cb in cb_response.data]
+
+        # Find which ones are already invested (exist in investment_transactions)
+        invested_response = supabase.table('investment_transactions') \
+            .select('cashback_transaction_id') \
+            .in_('cashback_transaction_id', all_cb_ids) \
+            .execute()
+
+        invested_ids = [ir['cashback_transaction_id'] for ir in invested_response.data]
+
+        # Filter out the ones that are already invested
+        uninvested_cashbacks = [
+            cb for cb in cb_response.data
+            if cb['id'] not in invested_ids
+        ]
+
+        if not uninvested_cashbacks:
+            return jsonify({'message': 'All cashback transactions are already invested'}), 200
+
+        # ------------------------------------------------------------------------------
+        # 3. For each uninvested cashback, perform the investment logic
+        # ------------------------------------------------------------------------------
         # Get portfolio data
         portfolio = supabase.table('portfolios') \
             .select('*') \
             .eq('id', portfolio_id) \
             .execute()
-            
+
         if not portfolio.data:
             return jsonify({'error': 'Portfolio not found'}), 404
 
         portfolio_data = portfolio.data[0]
         current_price = float(portfolio_data['current_value_per_unit'])
-        units_purchased = cashback_amount / current_price
 
-        # Get or create user investment
-        user_investment = supabase.table('user_investments') \
+        # Get or create user_investment
+        current_time = datetime.utcnow().isoformat()
+        user_investment_response = supabase.table('user_investments') \
             .select('*') \
             .eq('credit_card_id', credit_card_id) \
             .execute()
 
-        current_time = datetime.utcnow().isoformat()
-
-        if not user_investment.data:
-            # Create new investment
+        # If user_investment doesn't exist, create a blank one, then update as we go
+        if not user_investment_response.data:
             investment_data = {
                 'credit_card_id': credit_card_id,
                 'portfolio_id': portfolio_id,
                 'initial_investment_date': current_time,
-                'total_invested_amount': cashback_amount,
-                'total_units': units_purchased,
-                'total_current_value': cashback_amount,
+                'total_invested_amount': 0,
+                'total_units': 0,
+                'total_current_value': 0,
                 'total_growth_percentage': 0,
-                'investment_data_points': json.dumps([{
-                    'x': current_time,
-                    'y': cashback_amount,
-                    'invested_amount': cashback_amount
-                }]),
+                'investment_data_points': json.dumps([]),
                 'last_investment_date': current_time
             }
             
             new_investment = supabase.table('user_investments') \
                 .insert(investment_data) \
                 .execute()
-            investment_id = new_investment.data[0]['id']
+
+            user_investment = new_investment.data[0]
+            investment_id = user_investment['id']
         else:
-            # Update existing investment
-            existing = user_investment.data[0]
-            new_total_invested = float(existing['total_invested_amount']) + cashback_amount
-            new_total_units = float(existing['total_units']) + units_purchased
-            
-            growth = calculate_growth(new_total_invested, new_total_units, current_price)
-            
-            data_points = json.loads(existing['investment_data_points'] or '[]')
-            data_points.append({
-                'x': current_time,
-                'y': growth['current_value'],
-                'invested_amount': new_total_invested
-            })
+            user_investment = user_investment_response.data[0]
+            investment_id = user_investment['id']
 
-            update_data = {
-                'total_invested_amount': new_total_invested,
-                'total_units': new_total_units,
-                'total_current_value': growth['current_value'],
-                'total_growth_percentage': growth['growth_percentage'],
-                'investment_data_points': json.dumps(data_points),
-                'last_investment_date': current_time
+        # We'll track total amounts for the final response
+        total_invested_now = 0.0
+        total_units_purchased = 0.0
+        investment_transactions_records = []
+
+        # Convert existing user_investment numeric values
+        current_total_invested = float(user_investment['total_invested_amount'])
+        current_total_units = float(user_investment['total_units'])
+
+        # Load existing data points
+        data_points = []
+        if user_investment['investment_data_points']:
+            try:
+                data_points = json.loads(user_investment['investment_data_points'])
+            except json.JSONDecodeError:
+                data_points = []
+
+        # Loop through each uninvested cashback and invest
+        for cb in uninvested_cashbacks:
+            cb_amount = float(cb['cashback_amount'])
+            units_purchased = 0.0
+            if current_price > 0:
+                units_purchased = cb_amount / current_price
+
+            # Update aggregate counters
+            current_total_invested += cb_amount
+            current_total_units += units_purchased
+            total_invested_now += cb_amount
+            total_units_purchased += units_purchased
+
+            # Insert the single investment_transactions record
+            transaction_data = {
+                'user_investment_id': investment_id,
+                'cashback_transaction_id': cb['id'],
+                'amount_invested': cb_amount,
+                'units_purchased': units_purchased,
+                'price_per_unit': current_price,
+                'investment_date': current_time
             }
-            
-            supabase.table('user_investments') \
-                .update(update_data) \
-                .eq('id', existing['id']) \
-                .execute()
-            investment_id = existing['id']
+            investment_transactions_records.append(transaction_data)
 
-        # Record investment transaction
-        transaction_data = {
-            'user_investment_id': investment_id,
-            'cashback_transaction_id': cashback_transaction_id,
-            'amount_invested': cashback_amount,
-            'units_purchased': units_purchased,
-            'price_per_unit': current_price,
-            'investment_date': current_time
+        # Now that we have the updated totals:
+        # Recalculate growth
+        from market_utils import calculate_growth
+        growth = calculate_growth(current_total_invested, current_total_units, current_price)
+
+        # Add a new data point reflecting the new total
+        data_points.append({
+            'x': current_time,
+            'y': growth['current_value'],
+            'invested_amount': current_total_invested
+        })
+
+        # Update user_investments
+        update_data = {
+            'total_invested_amount': current_total_invested,
+            'total_units': current_total_units,
+            'total_current_value': growth['current_value'],
+            'total_growth_percentage': growth['growth_percentage'],
+            'investment_data_points': json.dumps(data_points),
+            'last_investment_date': current_time
         }
-        
-        supabase.table('investment_transactions') \
-            .insert(transaction_data) \
+        supabase.table('user_investments') \
+            .update(update_data) \
+            .eq('id', investment_id) \
             .execute()
 
+        # Insert all new investment_transactions in one go 
+        # (or you can loop, but one .insert([...]) is typically more efficient).
+        supabase.table('investment_transactions') \
+            .insert(investment_transactions_records) \
+            .execute()
+
+        # ------------------------------------------------------------------------------
+        # Return a summary response
+        # ------------------------------------------------------------------------------
         return jsonify({
-            'message': 'Investment successful',
-            'amount_invested': cashback_amount,
-            'units_purchased': units_purchased,
-            'current_value': cashback_amount,
-            'price_per_unit': current_price
+            'message': f'Successfully invested {len(uninvested_cashbacks)} cashback transactions',
+            'total_amount_invested': round(total_invested_now, 2),
+            'total_units_purchased': round(total_units_purchased, 4),
+            'current_price_per_unit': current_price,
+            'new_investment_value': growth['current_value'],
+            'growth_percentage': growth['growth_percentage']
         })
 
     except Exception as e:
-        logger.error(f"Error in invest_cashback: {str(e)}")
+        logger.error(f"Error in invest_cashback (bulk): {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/investment/<int:credit_card_id>', methods=['GET'])
