@@ -151,24 +151,6 @@ def get_transactions():
     except Exception as e:
         raise APIError(str(e), 500)
 
-@app.route("/transactions/<uuid:transaction_id>", methods=["GET"])
-def get_transaction(transaction_id):
-    try:
-        result = supabase.table("transactions")\
-            .select("*")\
-            .eq("id", str(transaction_id))\
-            .execute()
-            
-        if not result.data:
-            raise APIError("Transaction not found", 404)
-            
-        return jsonify(result.data[0]), 200
-        
-    except APIError as e:
-        raise e
-    except Exception as e:
-        raise APIError(str(e), 500)
-
 @app.route("/transactions/<uuid:transaction_id>", methods=["PATCH"])
 def update_transaction(transaction_id):
     try:
