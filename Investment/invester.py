@@ -6,6 +6,7 @@ from datetime import datetime
 import json
 from typing import Dict, List, Optional
 import logging
+from flask_cors import CORS
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)
 portfolio_manager = None
 
 def init_app():

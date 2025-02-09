@@ -13,17 +13,21 @@ import {
 // Register required components
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
-const PORTFOLIO_URL = "http://127.0.0.1:5000/portfolio"; // Backend URL
+const INVESTMENT_URL = "http://127.0.0.1:5000/api/investment/4"; // API endpoint
 
 export default function StockGraph({ height = "h-40" }) {
   const [investmentData, setInvestmentData] = useState([]);
 
   useEffect(() => {
-    // Fetch portfolio data
-    fetch(PORTFOLIO_URL)
+    // Fetch investment history
+    fetch(INVESTMENT_URL)
       .then((response) => response.json())
-      .then((data) => setInvestmentData(data))
-      .catch((error) => console.error("Error fetching portfolio data:", error));
+      .then((data) => {
+        if (data.investment_history) {
+          setInvestmentData(data.investment_history);
+        }
+      })
+      .catch((error) => console.error("Error fetching investment data:", error));
   }, []);
 
   // Format date labels
