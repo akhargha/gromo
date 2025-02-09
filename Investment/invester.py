@@ -356,6 +356,26 @@ def update_all_investments():
     except Exception as e:
         logger.error(f"Error in update_all_investments: {str(e)}")
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/investment/transactions', methods=['GET'])
+def get_all_investment_transactions():
+    """
+    Get all rows from the investment_transactions table.
+    """
+    try:
+        response = supabase.table('investment_transactions').select('*').execute()
+        
+        # If there are no rows, return an empty list with a 200 status
+        if not response.data:
+            return jsonify([]), 200
+        
+        # Otherwise, return the data
+        return jsonify(response.data), 200
+
+    except Exception as e:
+        logger.error(f"Error in get_all_investment_transactions: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     init_app()  # Initialize on startup
