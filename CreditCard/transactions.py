@@ -1,8 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from supabase import create_client, Client
 import datetime
 
 app = Flask(__name__)
+CORS(app)
+
+PORT = 5006
 
 class Transactions:
     def __init__(self):
@@ -67,4 +71,4 @@ def delete_transaction(transaction_id):
     return jsonify(deleted_transaction)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=PORT, debug=True)
