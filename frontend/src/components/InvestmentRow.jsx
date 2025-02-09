@@ -60,7 +60,7 @@ export default function InvestmentRow() {
   return (
     <Card
       isBlurred
-      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-600 dark:to-green-600 min-w-[900px] max-w-[900px] p-6 shadow-lg"
+      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-600 dark:to-green-600 min-w-[1020px] max-w-[1020px] p-6 shadow-lg"
     >
       <CardBody>
         <div className="flex flex-col items-start">
