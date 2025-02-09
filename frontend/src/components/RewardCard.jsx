@@ -1,22 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardBody, Button } from "@heroui/react";
 
-// Define backend URL as a variable
-const CARD_URL = "http://127.0.0.1:5005"; // Change this if needed
+const CARD_URL = "http://localhost:5001/credit_card"; // Backend API URL
 
 export default function RewardCard() {
-  const [rewardAmount, setRewardAmount] = useState("0.00");
+  const [rewardAmount, setRewardAmount] = useState("Loading...");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch credit card details
-    fetch(`${CARD_URL}/get_credit_cards`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.credit_cards && data.credit_cards.length > 0) {
-          setRewardAmount(data.credit_cards[0].rewards_cash.toFixed(2)); // Get rewards cash
+    fetch(CARD_URL)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
+        return response.json();
       })
-      .catch((error) => console.error("Error fetching reward amount:", error));
+      .then((data) => {
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error("No credit card data found");
+        }
+
+        const creditCard = data[0]; // Extract first row
+        setRewardAmount(`$${(creditCard.rewards_cash || 0).toFixed(2)}`);
+      })
+      .catch((error) => {
+        console.error("Error fetching reward amount:", error);
+        setError("Failed to load rewards cash. Please try again later.");
+      });
   }, []);
 
   return (
@@ -26,9 +36,13 @@ export default function RewardCard() {
         <h2 className="text-lg text-black font-semibold">Reward Cash</h2>
 
         {/* Reward Amount */}
-        <p className="text-2xl font-bold text-black mt-2" style={{ paddingBottom: "40px" }}>
-          ${rewardAmount}
-        </p>
+        {error ? (
+          <p className="text-red-500 mt-2">{error}</p>
+        ) : (
+          <p className="text-2xl font-bold text-black mt-2" style={{ paddingBottom: "40px" }}>
+            {rewardAmount}
+          </p>
+        )}
 
         {/* Action Buttons with Increased Spacing */}
         <div className="flex flex-col gap-6 mt-6">

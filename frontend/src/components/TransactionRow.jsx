@@ -10,24 +10,31 @@ import {
   CardBody,
 } from "@heroui/react";
 
-// Define backend URL as a variable
-const TRANSACTIONS_URL = "http://127.0.0.1:5006"; // You can change this easily if needed
+// Define correct backend URL
+const TRANSACTIONS_URL = "http://127.0.0.1:5003/transactions";
 
 export default function TransactionRow() {
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    // Fetch transactions from backend
-    fetch(`${TRANSACTIONS_URL}/transactions`)
-      .then((response) => response.json())
+    fetch(TRANSACTIONS_URL)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then((data) => {
-        // Map the received transactions to the required format
-        const formattedTransactions = data.map((tx, index) => ({
-          key: tx.id.toString(),
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error("No transactions found");
+        }
+
+        const formattedTransactions = data.map((tx) => ({
+          key: tx.id,
           date: new Date(tx.transaction_date).toLocaleDateString(),
-          amount: `$${tx.transaction_amount.toFixed(2)}`,
-          type: tx.description, // Use description for transaction type
-          cashback: `$${(tx.transaction_amount * 0.03).toFixed(2)}`, // 3% cashback
+          amount: `$${tx.amount.toFixed(2)}`,
+          cashback: `$${tx.cashback.toFixed(2)}`,
+          invested: tx.invested ? "Yes" : "No",
         }));
 
         setTransactions(formattedTransactions);
@@ -35,30 +42,17 @@ export default function TransactionRow() {
       .catch((error) => console.error("Error fetching transactions:", error));
   }, []);
 
-  // Table column structure
+  // Table columns
   const columns = [
-    {
-      key: "date",
-      label: "TRANSACTION DATE",
-    },
-    {
-      key: "amount",
-      label: "AMOUNT ($)",
-    },
-    {
-      key: "type",
-      label: "TRANSACTION TYPE",
-    },
-    {
-      key: "cashback",
-      label: "CASHBACK EARNED ($)",
-    },
+    { key: "date", label: "TRANSACTION DATE" },
+    { key: "amount", label: "AMOUNT ($)" },
+    { key: "cashback", label: "CASHBACK EARNED ($)" },
   ];
 
   return (
     <Card
       isBlurred
-      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-600 dark:to-green-600 min-w-[1000px] max-w-[1000px] p-6 shadow-lg"
+      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-600 dark:to-green-600 min-w-[800px] max-w-[1000px] p-6 shadow-lg"
     >
       <CardBody>
         <div className="flex flex-col items-start">
@@ -67,7 +61,6 @@ export default function TransactionRow() {
         </div>
 
         <Table aria-label="Transaction History">
-          {/* Table Header */}
           <TableHeader columns={columns}>
             {(column) => (
               <TableColumn key={column.key} className="text-white text-sm">
@@ -76,12 +69,15 @@ export default function TransactionRow() {
             )}
           </TableHeader>
 
-          {/* Table Body */}
           <TableBody items={transactions}>
             {(item) => (
               <TableRow key={item.key}>
                 {(columnKey) => (
-                  <TableCell className={columnKey === "cashback" ? "text-green-500 font-semibold" : ""}>
+                  <TableCell
+                    className={
+                      columnKey === "cashback" ? "text-green-500 font-semibold" : ""
+                    }
+                  >
                     {item[columnKey]}
                   </TableCell>
                 )}
