@@ -1,6 +1,7 @@
 import NavbarTop from "./components/NavbarTop";
 import FinanceCard from "./components/FinanceCard.jsx";
 import InvestmentCard from "./components/InvestmentCard.jsx";
+import TransactionRow from "./components/TransactionRow.jsx";
 
 export default function App() {
   return (
@@ -13,10 +14,17 @@ export default function App() {
         <NavbarTop />
       </div>
 
-      {/* Content Positioned Below the Navbar */}
+      {/* Cards Section (Finance & Investment Side by Side) */}
       <div className="relative z-10 flex flex-row justify-center items-start mt-10 gap-10">
         <FinanceCard />
         <InvestmentCard investmentAmount="592" changePercentage="-11"/>
+      </div>
+
+      {/* Transaction Table - Centered with Gap */}
+      <div className="relative z-10 flex justify-center mt-16">
+        <div className="w-full max-w-4xl flex justify-center"> {/* Centered & Limited Width */}
+          <TransactionRow />
+        </div>
       </div>
     </div>
   );
