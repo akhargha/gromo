@@ -18,24 +18,28 @@ const transactions = [
     date: "2024-02-01",
     amount: "$150.75",
     type: "Groceries",
+    cashback: "$5.00",
   },
   {
     key: "2",
     date: "2024-02-02",
     amount: "$85.20",
     type: "Fashion",
+    cashback: "$3.00",
   },
   {
     key: "3",
     date: "2024-02-03",
     amount: "$220.00",
     type: "Electronics",
+    cashback: "$7.50",
   },
   {
     key: "4",
     date: "2024-02-04",
     amount: "$45.60",
     type: "Dining",
+    cashback: "$2.00",
   },
 ];
 
@@ -53,29 +57,31 @@ const columns = [
     key: "type",
     label: "TRANSACTION TYPE",
   },
+  {
+    key: "cashback",
+    label: "CASHBACK EARNED ($)",
+  },
 ];
 
 export default function TransactionRow() {
   return (
     <Card
       isBlurred
-      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-800 dark:to-green-600 min-w-[1000px] max-w-[1000px] p-6 shadow-lg"
+      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-600 dark:to-green-600 min-w-[1000px] max-w-[1000px] p-6 shadow-lg"
     >
       <CardBody>
         <div className="flex flex-col items-start">
           <h2
             style={{
-              fontFamily: "sans-serif",
-              color: "white",
-              textShadow:
-                "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
               fontSize: "30px",
+              fontWeight: "bold"
             }}
           >
             Transactions
           </h2>
           <p className="text-lg text-white/80">Your recent transactions</p>
         </div>
+
         <Table aria-label="Transaction History">
           {/* Table Header */}
           <TableHeader columns={columns}>
@@ -91,7 +97,9 @@ export default function TransactionRow() {
             {(item) => (
               <TableRow key={item.key}>
                 {(columnKey) => (
-                  <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+                  <TableCell className={columnKey === "cashback" ? "text-green-500 font-semibold" : ""}>
+                    {getKeyValue(item, columnKey)}
+                  </TableCell>
                 )}
               </TableRow>
             )}
