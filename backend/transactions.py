@@ -151,58 +151,6 @@ def get_transactions():
     except Exception as e:
         raise APIError(str(e), 500)
 
-@app.route("/transactions/<uuid:transaction_id>", methods=["PATCH"])
-def update_transaction(transaction_id):
-    try:
-        data = request.json
-        
-        # Check if transaction exists
-        exists = supabase.table("transactions")\
-            .select("id")\
-            .eq("id", str(transaction_id))\
-            .execute()
-            
-        if not exists.data:
-            raise APIError("Transaction not found", 404)
-        
-        # Update transaction
-        result = supabase.table("transactions")\
-            .update(data)\
-            .eq("id", str(transaction_id))\
-            .execute()
-            
-        return jsonify(result.data[0]), 200
-        
-    except APIError as e:
-        raise e
-    except Exception as e:
-        raise APIError(str(e), 500)
-
-@app.route("/transactions/<uuid:transaction_id>", methods=["DELETE"])
-def delete_transaction(transaction_id):
-    try:
-        # Check if transaction exists
-        exists = supabase.table("transactions")\
-            .select("id")\
-            .eq("id", str(transaction_id))\
-            .execute()
-            
-        if not exists.data:
-            raise APIError("Transaction not found", 404)
-        
-        # Delete transaction
-        result = supabase.table("transactions")\
-            .delete()\
-            .eq("id", str(transaction_id))\
-            .execute()
-            
-        return "", 204
-        
-    except APIError as e:
-        raise e
-    except Exception as e:
-        raise APIError(str(e), 500)
-
 @app.route("/transactions/invest/<uuid:transaction_id>", methods=["POST"])
 def invest_cashback(transaction_id):
     try:
