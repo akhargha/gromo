@@ -59,3 +59,6 @@ htmlcov/
 
 # Ignore compiled Java files
 *.class
+
+# Local Netlify folder
+.netlify
