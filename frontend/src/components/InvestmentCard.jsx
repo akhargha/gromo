@@ -6,7 +6,7 @@ import DownArrow from "../assets/arrow-down.svg"; // Import Down Arrow
 
 export default function InvestmentCard({ investmentAmount, changePercentage, onClick }) {
   const isPositive = changePercentage >= 0;
-  const textColor = isPositive ? "text-green-500" : "text-red-500";
+  const textColor = isPositive ? "text-green-500" : "text-red-700";
   const arrowIcon = isPositive ? UpArrow : DownArrow; // Choose correct arrow
 
   return (
