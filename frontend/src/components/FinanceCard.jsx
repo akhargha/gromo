@@ -12,11 +12,8 @@ export default function FinanceCard() {
         <div className="flex flex-col items-start">
         <h2
             style={{
-              fontFamily: "sans-serif",
-              color: "white",
-              textShadow:
-                "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
               fontSize: "30px",
+              fontWeight: "bold"
             }}
           >
             Account Overview

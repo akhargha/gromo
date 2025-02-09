@@ -21,7 +21,7 @@ export default function App() {
       </div>
 
       {/* Transaction Table - Centered with Gap */}
-      <div className="relative z-10 flex justify-center mt-16">
+      <div className="relative z-10 flex justify-center mt-10" style={{ paddingBottom: "80px"}}>
         <div className="w-full max-w-4xl flex justify-center"> {/* Centered & Limited Width */}
           <TransactionRow />
         </div>

@@ -11,41 +11,37 @@ import {
   CardBody,
 } from "@heroui/react";
 
-// Sample transaction data
+// Sample transaction data with added Index column
 const transactions = [
   {
     key: "1",
+    index: "Vanguard Mid-capex", // Added index column
     date: "2024-02-01",
     amount: "$150.75",
-    type: "Groceries",
-    cashback: "$5.00",
   },
   {
     key: "2",
+    index: "Vanguard Mid-capex",
     date: "2024-02-02",
     amount: "$85.20",
-    type: "Fashion",
-    cashback: "$3.00",
   },
   {
     key: "3",
+    index: "Vanguard Mid-capex",
     date: "2024-02-03",
     amount: "$220.00",
-    type: "Electronics",
-    cashback: "$7.50",
   },
   {
     key: "4",
+    index: "Vanguard Mid-capex",
     date: "2024-02-04",
     amount: "$45.60",
-    type: "Dining",
-    cashback: "$2.00",
   },
 ];
 
-// Table column structure
+// Updated Table column structure (added Index column)
 const columns = [
-  {
+    {
     key: "date",
     label: "TRANSACTION DATE",
   },
@@ -54,35 +50,31 @@ const columns = [
     label: "AMOUNT ($)",
   },
   {
-    key: "type",
-    label: "TRANSACTION TYPE",
-  },
-  {
-    key: "cashback",
-    label: "CASHBACK EARNED ($)",
+    key: "index",
+    label: "INDEX",
   },
 ];
 
-export default function TransactionRow() {
+export default function InvestmentRow() {
   return (
     <Card
       isBlurred
-      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-600 dark:to-green-600 min-w-[1000px] max-w-[1000px] p-6 shadow-lg"
+      className="border-1 border-black bg-gradient-to-br from-green-600 via-green-700 to-green-800 dark:from-green-900 dark:via-green-600 dark:to-green-600 min-w-[700px] max-w-[700px] p-6 shadow-lg"
     >
       <CardBody>
         <div className="flex flex-col items-start">
           <h2
             style={{
               fontSize: "30px",
-              fontWeight: "bold"
+              fontWeight: "bold",
             }}
           >
-            Transactions
+            Investments
           </h2>
-          <p className="text-lg text-white/80">Your recent transactions</p>
+          <p className="text-lg text-white/80">Your investment history</p>
         </div>
 
-        <Table aria-label="Transaction History">
+        <Table aria-label="Investment History">
           {/* Table Header */}
           <TableHeader columns={columns}>
             {(column) => (
@@ -96,11 +88,7 @@ export default function TransactionRow() {
           <TableBody items={transactions}>
             {(item) => (
               <TableRow key={item.key}>
-                {(columnKey) => (
-                  <TableCell className={columnKey === "cashback" ? "text-green-500 font-semibold" : ""}>
-                    {getKeyValue(item, columnKey)}
-                  </TableCell>
-                )}
+                {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
               </TableRow>
             )}
           </TableBody>

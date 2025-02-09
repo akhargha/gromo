@@ -23,9 +23,10 @@ export default function NavbarTop() {
         <p
           style={{
             color: "#25a100",
-            fontSize: "25px",
+            fontSize: "35px",
             WebkitTextStroke: "1px black", // Black outline for WebKit browsers
             textShadow: "1px 1px 2px black", // Fallback for better browser support
+            paddingBottom: "10px"
           }}
           className="font-bold text-inherit"
         >
