@@ -1,8 +1,10 @@
 import os
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # -----------------------------------------------------------------------------
 # 1. Supabase Configuration
@@ -76,4 +78,4 @@ def update_credit_card():
 # 5. Run the Flask App
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    app.run(debug=True, port=5001)
