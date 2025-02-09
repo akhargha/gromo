@@ -15,7 +15,7 @@ ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip,
 
 const INVESTMENT_URL = "http://127.0.0.1:5000/api/investment/4"; // API endpoint
 
-export default function StockGraph({ height = "h-40" }) {
+export default function StockGraph({ height = "h-40", sampleInterval = 1 }) {
   const [investmentData, setInvestmentData] = useState([]);
 
   useEffect(() => {
@@ -30,6 +30,12 @@ export default function StockGraph({ height = "h-40" }) {
       .catch((error) => console.error("Error fetching investment data:", error));
   }, []);
 
+  // Optionally downsample the data based on sampleInterval
+  const filteredData =
+    sampleInterval > 1
+      ? investmentData.filter((_, index) => index % sampleInterval === 0)
+      : investmentData;
+
   // Format date labels
   const formatDate = (dateStr) => {
     const options = { month: "short", day: "numeric" };
@@ -37,8 +43,8 @@ export default function StockGraph({ height = "h-40" }) {
   };
 
   // Extract labels (dates) and data points (investment values)
-  const labels = investmentData.map((point) => formatDate(point.x));
-  const dataPoints = investmentData.map((point) => point.y);
+  const labels = filteredData.map((point) => formatDate(point.x));
+  const dataPoints = filteredData.map((point) => point.y);
 
   // Define dataset
   const data = {
