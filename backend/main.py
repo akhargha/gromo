@@ -6,8 +6,18 @@ from dateutil import parser
 import uvicorn
 import os
 from supabase import create_client, Client
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can specify allowed origins here, e.g., ["http://localhost:3000"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Set up the Supabase client using environment variables.
 SUPABASE_URL = os.getenv("SUPABASE_URL")
